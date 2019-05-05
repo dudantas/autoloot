@@ -30,18 +30,20 @@ function onModalWindow(player, modalWindowId, buttonId, choiceId)
 			db.query('DELETE FROM `player_autoloot_persist` WHERE `player_guid` = ' .. getPlayerGUID(player) .. ' AND `item_id` = ' .. itemType:getId() .. '')
 			player:removeAutoLootItem(itemType:getId())
 			elseif buttonId == 103 then	
+			if player:getAutoLootList() then
 			local playerlist = player:getAutoLootList()
+			end
 			if playerlist then
-			for _, item in ipairs(playerlist) do
-				table.insert(autolootlist, "".. item .."")
+				for _, item in ipairs(playerlist) do
+					table.insert(autolootlist, "".. item .."")
+				end
 			end
-			end
-			if #playerlist >= limiteAutoloot then
-			player:sendCancelMessage("Reached the limit <"..#playerlist..">for itens, first remove using !autoloot or !add <monster>, selecting option remove.")
-			return false
-			else
-			player:sendTextMessage(MESSAGE_INFO_DESCR,'Add '.. string.gsub(" "..ItemType(lootBlockList[choiceId].itemId):getName(), "%W%l", string.upper):sub(2, 21) ..' to autoloot list!')
-			player:addAutoLootItem(itemType:getId())
+			if playerlist and #playerlist >= limiteAutoloot then
+				player:sendCancelMessage("Reached the limit <"..#playerlist..">for itens, first remove using !autoloot or !add <monster>, selecting option remove.")
+				return false
+				else
+				player:sendTextMessage(MESSAGE_INFO_DESCR,'Add '.. string.gsub(" "..ItemType(lootBlockList[choiceId].itemId):getName(), "%W%l", string.upper):sub(2, 21) ..' to autoloot list!')
+				player:addAutoLootItem(itemType:getId())
 			end
 		end
 		call(player, 'add')
@@ -86,15 +88,15 @@ function onModalWindow(player, modalWindowId, buttonId, choiceId)
 			end
 			if sequencer > 1 then
 				if player:getAutoLootItem(lastitem[getPlayerGUID(player)]) then
-				local resultId = db.storeQuery('SELECT `cont_id` FROM `player_autoloot_persist` WHERE `player_guid` = ' .. getPlayerGUID(player) .. ' AND `item_id` = ' .. lastitem[getPlayerGUID(player)] .. '')
-				if resultId then
-					local bp_id = result.getNumber(resultId, 'cont_id')
-					else
-					db.query("INSERT INTO `player_autoloot_persist` (`player_guid`, `cont_id`, `item_id`) VALUES (".. getPlayerGUID(player) ..", ".. bp2[choiceId] ..", ".. lastitem[getPlayerGUID(player)] ..") ON DUPLICATE KEY UPDATE `cont_id` = ".. bp2[choiceId])
-				end
-				if result.getNumber(resultId, 'cont_id') and result.getNumber(resultId, 'cont_id') ~= bp2[choiceId] then
-					db.query('UPDATE `player_autoloot_persist` SET `cont_id` = '..bp2[choiceId]..' WHERE `player_guid` = ' .. getPlayerGUID(player) .. ' AND `item_id` = ' .. lastitem[getPlayerGUID(player)] .. '')
-				end
+					local resultId = db.storeQuery('SELECT `cont_id` FROM `player_autoloot_persist` WHERE `player_guid` = ' .. getPlayerGUID(player) .. ' AND `item_id` = ' .. lastitem[getPlayerGUID(player)] .. '')
+					if resultId then
+						local bp_id = result.getNumber(resultId, 'cont_id')
+						else
+						db.query("INSERT INTO `player_autoloot_persist` (`player_guid`, `cont_id`, `item_id`) VALUES (".. getPlayerGUID(player) ..", ".. bp2[choiceId] ..", ".. lastitem[getPlayerGUID(player)] ..") ON DUPLICATE KEY UPDATE `cont_id` = ".. bp2[choiceId])
+					end
+					if result.getNumber(resultId, 'cont_id') and result.getNumber(resultId, 'cont_id') ~= bp2[choiceId] then
+						db.query('UPDATE `player_autoloot_persist` SET `cont_id` = '..bp2[choiceId]..' WHERE `player_guid` = ' .. getPlayerGUID(player) .. ' AND `item_id` = ' .. lastitem[getPlayerGUID(player)] .. '')
+					end
 				end
 			end
 			call(player, 'add')	
@@ -159,7 +161,7 @@ function call(player, param, param2, tobpid)
 			sum = sum + 1
 		end
 		if autolootBP == 1 then
-		window:addButton(105, "Backpack")
+			window:addButton(105, "Backpack")
 		end
 		callwindow(window, player, 1)
 		elseif param == 'remove' then
@@ -179,7 +181,7 @@ function call(player, param, param2, tobpid)
 					else
 					backvinculo = ''
 				end
-			window:addChoice(sum, "".. string.gsub(" "..(ItemType(item)):getName(), "%W%l", string.upper):sub(2, 21) .." "..string.gsub(" "..string.lower(backvinculo), "%W%l", string.upper):sub(2).."")
+				window:addChoice(sum, "".. string.gsub(" "..(ItemType(item)):getName(), "%W%l", string.upper):sub(2, 21) .." "..string.gsub(" "..string.lower(backvinculo), "%W%l", string.upper):sub(2).."")
 				sum = sum + 1
 			end
 			else
@@ -187,12 +189,12 @@ function call(player, param, param2, tobpid)
 			return false
 		end
 		if autolootBP == 1 then
-		window:addButton(106, "Backpack")
+			window:addButton(106, "Backpack")
 		end
 		callwindow(window, player, 2)
 		elseif param == 'backpack' then
 		local lootBlockList = lootBlockListm[getPlayerGUID(player)]
-	
+		
 		local modalcode
 		if param2 and param2 == 1001 then
 			modalcode = 1005
@@ -202,23 +204,23 @@ function call(player, param, param2, tobpid)
 		local message = "Choose a Backpack:"
 		local window = ModalWindow(modalcode, title, message)
 		local sum = 1
-			local container, names = {}, {}
-			if getContainerSize(getPlayerSlotItem(player, CONST_SLOT_BACKPACK).uid) then
-				for i = 0, getContainerSize(getPlayerSlotItem(player, CONST_SLOT_BACKPACK).uid) do
-					local thing = getContainerItem(getPlayerSlotItem(player, CONST_SLOT_BACKPACK).uid, i)
-					container[i] = getContainerItem(getPlayerSlotItem(player, CONST_SLOT_BACKPACK).uid, i)
-					if isContainer(container[i].uid) then
-						if not table.contains(names, container[i].itemId) then
-							table.insert(names, container[i].itemId)
-							window:addChoice(sum, ""..string.gsub(" "..string.lower(ItemType(container[i].itemid):getName()), "%W%l", string.upper):sub(2).."")
-						end
-						sum = sum + 1
+		local container, names = {}, {}
+		if getContainerSize(getPlayerSlotItem(player, CONST_SLOT_BACKPACK).uid) then
+			for i = 0, getContainerSize(getPlayerSlotItem(player, CONST_SLOT_BACKPACK).uid) do
+				local thing = getContainerItem(getPlayerSlotItem(player, CONST_SLOT_BACKPACK).uid, i)
+				container[i] = getContainerItem(getPlayerSlotItem(player, CONST_SLOT_BACKPACK).uid, i)
+				if isContainer(container[i].uid) then
+					if not table.contains(names, container[i].itemId) then
+						table.insert(names, container[i].itemId)
+						window:addChoice(sum, ""..string.gsub(" "..string.lower(ItemType(container[i].itemid):getName()), "%W%l", string.upper):sub(2).."")
 					end
+					sum = sum + 1
 				end
-				else
-				player:sendCancelMessage("Not find main backpack.")
-				return false
 			end
+			else
+			player:sendCancelMessage("Not find main backpack.")
+			return false
+		end
 		if sum == 1 then
 			player:sendCancelMessage("Not find sub-backpacks.")
 			return false
@@ -230,7 +232,7 @@ end
 function callwindow(window, player, param)
 	if param == 3 then
 		window:addButton(100, "Confirm")
-	else
+		else
 		window:addButton(100, "Confirm")
 		window:addButton(102, "Remove")
 		if param == 1 then
@@ -238,4 +240,4 @@ function callwindow(window, player, param)
 		end
 	end
 	window:sendToPlayer(player)		
-end	
+end
