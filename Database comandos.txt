@@ -1,0 +1,14 @@
+CREATE TABLE player_autoloot (
+    id int NOT NULL AUTO_INCREMENT,
+    player_id int NOT NULL,
+    autoloot_list blob,
+    PRIMARY KEY (id)
+);
+
+
+
+CREATE TABLE IF NOT EXISTS `player_autoloot_persist` (
+  `player_guid` mediumint(9) DEFAULT NULL,
+  `cont_id` mediumint(9) DEFAULT NULL,
+  `item_id` mediumint(9) DEFAULT NULL
+)
