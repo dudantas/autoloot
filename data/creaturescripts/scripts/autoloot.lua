@@ -241,3 +241,76 @@ function callwindow(window, player, param)
 	end
 	window:sendToPlayer(player)		
 end
+
+local function scanContainer(cid, position)
+    local player = Player(cid)
+    if not player then
+        return
+	end
+	
+    local corpse = Tile(position):getTopDownItem()
+    if not corpse or not corpse:isContainer() then
+        return
+	end
+	
+	local logic, contlogic, bplogica = 1, {}, {}
+	if getContainerSize(getPlayerSlotItem(player, CONST_SLOT_BACKPACK).uid) then
+		for i = 0, getContainerSize(getPlayerSlotItem(player, CONST_SLOT_BACKPACK).uid) do
+			contlogic[logic] = getContainerItem(getPlayerSlotItem(player, CONST_SLOT_BACKPACK).uid, i)
+			
+			if isContainer(contlogic[logic].uid) then
+				bplogica[logic] = contlogic[logic]
+				logic = logic + 1
+			end
+			
+		end
+	end
+	
+    if corpse:getType():isCorpse() and corpse:getAttribute(ITEM_ATTRIBUTE_CORPSEOWNER) == cid then
+        
+		for i = corpse:getSize() - 1, 0, -1 do
+            local containerItem = corpse:getItem(i)
+            if containerItem then
+				
+				if player:getAutoLootItem(containerItem:getId()) then	
+					local itemcorpse = containerItem
+					local slotgg
+					local localizou
+					local resultId = db.storeQuery('SELECT `cont_id` FROM `player_autoloot_persist` WHERE `player_guid` = ' .. getPlayerGUID(player) .. ' AND `item_id` = ' .. itemcorpse:getId() .. '')
+					if resultId then
+						local bp_id = result.getNumber(resultId, 'cont_id')
+					end
+					for i = 1, #bplogica do
+						local tempitem = Item(bplogica[i].uid)
+						if tempitem:getId() == result.getNumber(resultId, 'cont_id') and localizou ~= 1 then
+							local bp = bplogica[i].uid
+							local freeSlotsInBp = math.max(0, getContainerCap(bp) - getContainerSize(bp))
+							if freeSlotsInBp and freeSlotsInBp > 0 then
+								slotgg = bplogica[i].uid
+								localizou = 1
+							end
+						end
+					end
+					
+					local destination = Item(slotgg)
+					
+					if destination and destination:getTopParent() == player then
+						itemcorpse:moveTo(destination)
+						else
+						containerItem:moveTo(player)
+					end
+				end
+				
+			end
+		end
+	end
+end
+
+function onKill(player, target)
+    if not target:isMonster() then
+        return true
+	end
+	
+    addEvent(scanContainer, 100, player:getId(), target:getPosition()) --(essa linha faz com que o loot seja catado ao matar o monstro, sem abrir o corpo)
+   return true
+end
