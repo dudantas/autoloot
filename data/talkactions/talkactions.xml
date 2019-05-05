@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<talkactions>
+	<talkaction words="!autoloot" script="autoloot.lua" />
+	<talkaction words="!add" separator=" " script="addautoloot.lua" />
+</talkactions>

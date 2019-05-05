@@ -4799,6 +4799,23 @@ void Player::doCriticalDamage(CombatDamage& damage) const
 	}
 }
 
+//autoloot
+void Player::addAutoLootItem(uint16_t itemId)
+{
+    autoLootList.insert(itemId);
+}
+
+void Player::removeAutoLootItem(uint16_t itemId)
+{
+    autoLootList.erase(itemId);
+}
+
+bool Player::getAutoLootItem(const uint16_t itemId)
+{
+    return autoLootList.find(itemId) != autoLootList.end();
+}
+
+
 //Custom: Anti bug do market
 bool Player::isMarketExhausted() const {
 	uint32_t exhaust_time = 3000; //half second 500
