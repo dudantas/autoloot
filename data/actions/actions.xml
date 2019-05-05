@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<actions>
-	<!-- Autoloot mode 2 -->
-	<action actionid="500" script="autoloot.lua" />
-</actions>

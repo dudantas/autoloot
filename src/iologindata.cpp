@@ -80,7 +80,7 @@ std::string decodeSecret(const std::string& secret)
 	}
 
 	return key;
-	}
+}
 
 bool IOLoginData::loginserverAuthentication(const std::string& name, const std::string& password, Account& account)
 {
@@ -479,7 +479,7 @@ bool IOLoginData::loadPlayer(Player* player, DBResult_ptr result)
 
 		if (guild) {
 			player->guild = guild;
-			const GuildRank* rank = guild->getRankById(playerRankId);
+			  GuildRank_ptr rank = guild->getRankById(playerRankId);
 			if (!rank) {
 				query.str(std::string());
 				query << "SELECT `id`, `name`, `level` FROM `guild_ranks` WHERE `id` = " << playerRankId;
@@ -529,7 +529,7 @@ bool IOLoginData::loadPlayer(Player* player, DBResult_ptr result)
 	}
 
 	query.str(std::string());
-	query << "SELECT `pid`, `sid`, `itemtype`, `count`, `attributes` FROM `player_items` WHERE `player_id` = " << player->getGUID() << " ORDER BY `sid` DESC";
+	query << "SELECT `pid`, `sid`, `itemtype`, `count`, `attributes` FROM `player_items` WHERE `player_id` = " << player->getGUID() << " ORDER BY `sid` DESC LIMIT 5000";
 	if ((result = db.storeQuery(query.str()))) {
 		loadItems(itemMap, result);
 
@@ -562,7 +562,7 @@ bool IOLoginData::loadPlayer(Player* player, DBResult_ptr result)
 	itemMap.clear();
 
 	query.str(std::string());
-	query << "SELECT `pid`, `sid`, `itemtype`, `count`, `attributes` FROM `player_depotitems` WHERE `player_id` = " << player->getGUID() << " ORDER BY `sid` DESC";
+	query << "SELECT `pid`, `sid`, `itemtype`, `count`, `attributes` FROM `player_depotitems` WHERE `player_id` = " << player->getGUID() << " ORDER BY `sid` DESC LIMIT 5000";
 	if ((result = db.storeQuery(query.str()))) {
 		loadItems(itemMap, result);
 
@@ -594,8 +594,8 @@ bool IOLoginData::loadPlayer(Player* player, DBResult_ptr result)
 	itemMap.clear();
 
 	query.str(std::string());
-	query << "SELECT `pid`, `sid`, `itemtype`, `count`, `attributes` FROM `player_rewards` WHERE `player_id` = " << player->getGUID() << " ORDER BY `sid` DESC";
-	if ((result = db.storeQuery(query.str()))) {
+	query << "SELECT `pid`, `sid`, `itemtype`, `count`, `attributes` FROM `player_rewards` WHERE `player_id` = " << player->getGUID() << " ORDER BY `sid` DESC LIMIT 5000";
+    if ((result = db.storeQuery(query.str()))) {
 		loadItems(itemMap, result);
 
 		//first loop handles the reward containers to retrieve its date attribute
@@ -667,22 +667,7 @@ bool IOLoginData::loadPlayer(Player* player, DBResult_ptr result)
 			}
 		}
 	}
-		//load autoloot list set
-	query.str(std::string());
-	query << "SELECT `autoloot_list` FROM `player_autoloot` WHERE `player_id` = " << player->getGUID();
-	if ((result = db.storeQuery(query.str()))) {
-		unsigned long lootlistSize;
-		const char* autolootlist = result->getStream("autoloot_list", lootlistSize);
-		PropStream propStreamList;
-		propStreamList.init(autolootlist, lootlistSize);
 
-		int16_t value;
-		int16_t item = propStreamList.read<int16_t>(value);
-		while (item) {
-			player->addAutoLootItem(value);
-			item = propStreamList.read<int16_t>(value);
-		}
-	}
 	//load storage map
 	query.str(std::string());
 	query << "SELECT `key`, `value` FROM `player_storage` WHERE `player_id` = " << player->getGUID();
@@ -1028,34 +1013,7 @@ bool IOLoginData::savePlayer(Player* player)
 			return false;
 		}
 	}
-	//save autolootlist
-		query.str(std::string());
-		query << "DELETE FROM `player_autoloot` WHERE `player_id` = " << player->getGUID();
-		if (!db.executeQuery(query.str())) {
-			return false;
-		}
 
-		PropWriteStream propWriteStreamAutoLoot;
-
-		for (auto i : player->autoLootList) {
-			propWriteStreamAutoLoot.write<uint16_t>(i);
-		}
-
-		size_t lootlistSize;
-		const char* autolootlist = propWriteStreamAutoLoot.getStream(lootlistSize);
-
-		query.str(std::string());
-
-		DBInsert autolootQuery("INSERT INTO `player_autoloot` (`player_id`, `autoloot_list`) VALUES ");
-
-			query << player->getGUID() << ',' << db.escapeBlob(autolootlist, lootlistSize);
-			if (!autolootQuery.addRow(query)) {
-				return false;
-			}
-
-		if (!autolootQuery.execute()) {
-			return false;
-		}
 	//save inbox items
 	query.str(std::string());
 	query << "DELETE FROM `player_inboxitems` WHERE `player_id` = " << player->getGUID();
