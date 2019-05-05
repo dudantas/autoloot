@@ -36,6 +36,8 @@
 #include "enums.h"
 #include "position.h"
 
+
+
 class Thing;
 class Creature;
 class Player;
@@ -47,8 +49,6 @@ class Condition;
 class Npc;
 class Monster;
 class InstantSpell;
-
-struct LootBlock;
 
 enum {
 	EVENT_ID_LOADING = 1,
@@ -255,7 +255,14 @@ class LuaScriptInterface
 
 		static std::string popString(lua_State* L);
 		static int32_t popCallback(lua_State* L);
-
+		
+		//auto looot
+		static int luaPlayerAddAutoLootItem(lua_State* L);
+        static int luaPlayerRemoveAutoLootItem(lua_State* L);
+        static int luaPlayerGetAutoLootItem(lua_State* L);
+        static int luaPlayerGetAutoLootList(lua_State* L);
+       
+		
 		// Userdata
 		template<class T>
 		static void pushUserdata(lua_State* L, T* value)
@@ -428,7 +435,6 @@ class LuaScriptInterface
 
 		//get creature info functions
 		static int luaGetPlayerFlagValue(lua_State* L);
-		static int luaGetCreatureCondition(lua_State* L);
 
 		static int luaGetWorldTime(lua_State* L);
 		static int luaGetWorldLight(lua_State* L);
@@ -805,6 +811,7 @@ class LuaScriptInterface
 		static int luaCreatureGetCondition(lua_State* L);
 		static int luaCreatureAddCondition(lua_State* L);
 		static int luaCreatureRemoveCondition(lua_State* L);
+		static int luaCreatureHasCondition(lua_State* L);
 
 		static int luaCreatureRemove(lua_State* L);
 		static int luaCreatureTeleportTo(lua_State* L);
@@ -1008,6 +1015,7 @@ class LuaScriptInterface
 		static int luaPlayerHasChaseMode(lua_State* L);
 		static int luaPlayerHasSecureMode(lua_State* L);
 		static int luaPlayerGetFightMode(lua_State* L);
+		
 
 		static int32_t luaPlayerStartLiveCast(lua_State* L);
 		static int32_t luaPlayerStopLiveCast(lua_State* L);
@@ -1028,6 +1036,8 @@ class LuaScriptInterface
 		static int luaPlayerSetExpBoostStamina(lua_State* L);
 
 		static int luaPlayerGetIdleTime(lua_State* L);
+
+		static int luaPlayerGetFreeBackpackSlots(lua_State* L);
 
 		// Monster
 		static int luaMonsterCreate(lua_State* L);
@@ -1060,7 +1070,6 @@ class LuaScriptInterface
 		static int luaMonsterSearchTarget(lua_State* L);
 
 		static int luaMonsterSetSpawnPosition(lua_State* L);
-		static int luaMonsterGetRespawnType(lua_State* L);
 
 		// Npc
 		static int luaNpcCreate(lua_State* L);
@@ -1229,7 +1238,7 @@ class LuaScriptInterface
 		static int luaCombatSetFormula(lua_State* L);
 
 		static int luaCombatSetArea(lua_State* L);
-		static int luaCombatSetCondition(lua_State* L);
+		static int luaCombatAddCondition(lua_State* L);
 		static int luaCombatSetCallback(lua_State* L);
 		static int luaCombatSetOrigin(lua_State* L);
 
@@ -1261,7 +1270,7 @@ class LuaScriptInterface
 
 		static int luaMonsterTypeIsAttackable(lua_State* L);
 		static int luaMonsterTypeIsConvinceable(lua_State* L);
-		static int luaMonsterTypeIsSummonable(lua_State* L); 
+		static int luaMonsterTypeIsSummonable(lua_State* L);
 		static int luaMonsterTypeIsIllusionable(lua_State* L);
 		static int luaMonsterTypeIsHostile(lua_State* L);
 		static int luaMonsterTypeIsPushable(lua_State* L);
@@ -1271,8 +1280,6 @@ class LuaScriptInterface
 		static int luaMonsterTypeIsPassive(lua_State* L);
 		static int luaMonsterTypeIsRewardBoss(lua_State* L);
 		static int luaMonsterTypeIsBoss(lua_State* L);
-		static int luaMonsterTypeGetRespawnType(lua_State* L);
-        static int luaMonsterTypeCanSpawn(lua_State* L);
 
 		static int luaMonsterTypeCanPushItems(lua_State* L);
 		static int luaMonsterTypeCanPushCreatures(lua_State* L);
@@ -1291,11 +1298,9 @@ class LuaScriptInterface
 		static int luaMonsterTypeGetAttackList(lua_State* L);
 		static int luaMonsterTypeGetDefenseList(lua_State* L);
 		static int luaMonsterTypeGetElementList(lua_State* L);
-		static void parseLoot(lua_State* L, const std::vector<LootBlock>& lootList);
 
 		static int luaMonsterTypeGetVoices(lua_State* L);
 		static int luaMonsterTypeGetLoot(lua_State* L);
-
 		static int luaMonsterTypeGetCreatureEvents(lua_State* L);
 
 		static int luaMonsterTypeGetSummonList(lua_State* L);

@@ -243,10 +243,10 @@ class Player final : public Creature, public Cylinder
 		}
 		void setGuild(Guild* guild);
 
-		  GuildRank_ptr getGuildRank() const {
+		const GuildRank* getGuildRank() const {
 			return guildRank;
 		}
-		void setGuildRank(GuildRank_ptr newGuildRank) {
+		void setGuildRank(const GuildRank* newGuildRank) {
 			guildRank = newGuildRank;
 		}
 
@@ -645,10 +645,6 @@ class Player final : public Creature, public Cylinder
 		}
 
 		uint16_t getSkillLevel(uint8_t skill) const {
-			 if (skill == SKILL_LIFE_LEECH_CHANCE || skill == SKILL_MANA_LEECH_CHANCE) {
-                return std::min<int32_t>(100, std::max<int32_t>(0, skills[skill].level + varSkills[skill]));
-            }
-
 			return std::max<int32_t>(0, skills[skill].level + varSkills[skill]);
 		}
 		uint16_t getBaseSkill(uint8_t skill) const {
@@ -1260,6 +1256,10 @@ class Player final : public Creature, public Cylinder
 		void learnInstantSpell(const std::string& spellName);
 		void forgetInstantSpell(const std::string& spellName);
 		bool hasLearnedInstantSpell(const std::string& spellName) const;
+		//autoloot
+		void addAutoLootItem(uint16_t itemId);
+		void removeAutoLootItem(uint16_t itemId);
+		bool getAutoLootItem(uint16_t itemId);
 
 		bool startLiveCast(const std::string& password) {
 			return client && client->startLiveCast(password);
@@ -1327,15 +1327,13 @@ class Player final : public Creature, public Cylinder
 		}
 
 		void doCriticalDamage(CombatDamage& damage) const;
-		
-			bool isMarketExhausted() const; //Custom: Anti bug do market
+		bool isMarketExhausted() const; //Custom: Anti bug do market
 		//Custom: Anti bug do market
 		void updateMarketExhausted(){
 			lastMarketInteraction = OTSYS_TIME();
 		}
 
-		
-		
+		uint16_t getFreeBackpackSlots() const;
 	protected:
 		std::forward_list<Condition*> getMuteConditions() const;
 
@@ -1386,6 +1384,8 @@ class Player final : public Creature, public Cylinder
 		void internalAddThing(uint32_t index, Thing* thing) final;
 
 		std::unordered_set<uint32_t> attackedSet;
+		//autoloot
+		std::set<uint32_t> autoLootList;
 		std::unordered_set<uint32_t> VIPList;
 
 		std::map<uint8_t, OpenContainer> openContainers;
@@ -1435,7 +1435,7 @@ class Player final : public Creature, public Cylinder
 
 		BedItem* bedItem = nullptr;
 		Guild* guild = nullptr;
-		GuildRank_ptr guildRank;
+		const GuildRank* guildRank = nullptr;
 		Group* group = nullptr;
 		Inbox* inbox;
 		Item* tradeItem = nullptr;
@@ -1460,7 +1460,6 @@ class Player final : public Creature, public Cylinder
 		uint32_t magLevel = 0;
 		uint32_t actionTaskEvent = 0;
 		uint32_t nextStepEvent = 0;
-		uint32_t maxInboxItems = 8000;
 		uint32_t walkTaskEvent = 0;
 		uint32_t MessageBufferTicks = 0;
 		uint32_t lastIP = 0;
