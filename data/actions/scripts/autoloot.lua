@@ -49,19 +49,24 @@ function onUse(player, item, fromPosition, target, toPosition, isHotkey)
 		local destination = Item(slotgg)
 		
 			if destination and destination:getTopParent() == player then
-				itemcorpse:moveTo(destination)
-					if bodycontainer[times].type > 1 then
-					msg = ''..msg.. ', '..bodycontainer[times].type..' '..tostring(ItemType(bodycontainer[times].itemid):getPluralName())..''
-					else
-					msg = ''..msg.. ', '..tostring(ItemType(bodycontainer[times].itemid):getName())..''
-					end
+				local weight = ItemType(itemcorpse):getWeight(itemcorpse.type)
+							if player:getFreeCapacity() >= weight then
+							itemcorpse:moveTo(destination)
+								if bodycontainer[times].type > 1 then
+									msg = ''..msg.. ', '..bodycontainer[times].type..' '..tostring(ItemType(bodycontainer[times].itemid):getPluralName())..''
+								else
+									msg = ''..msg.. ', '..tostring(ItemType(bodycontainer[times].itemid):getName())..''
+								end
+							end
 			else
 				if not table.contains(issue, bodycontainer[times].itemid) then
-				table.insert(issue, bodycontainer[times].itemid)
+					table.insert(issue, bodycontainer[times].itemid)
 				end
-				itemcorpse:moveToSlot(player, 0)
+					local weight = ItemType(itemcorpse):getWeight(itemcorpse.type)
+				if player:getFreeCapacity() >= weight then
+					itemcorpse:moveToSlot(player, 0)
+				end
 			end	
-			
 		else
 			slot = slot + 1
 		end		

@@ -1,7 +1,9 @@
 function onModalWindow(player, modalWindowId, buttonId, choiceId)
 	player:unregisterEvent('autoloot')	
-	local limiteAutoloot = 100
+	local limiteAutoloot = 5
 	local autolootlist, sum = {}, 1
+	local soma = {}
+	local number = 1
 	if buttonId == 102 and modalWindowId == 1000 then
 		local playerlist = player:getAutoLootList()
 		if playerlist then
@@ -33,17 +35,21 @@ function onModalWindow(player, modalWindowId, buttonId, choiceId)
 			if player:getAutoLootList() then
 			local playerlist = player:getAutoLootList()
 			end
-			if playerlist then
-				for _, item in ipairs(playerlist) do
-					table.insert(autolootlist, "".. item .."")
+			if player:getAutoLootList() then
+				
+				for _, item in ipairs(player:getAutoLootList()) do
+					table.insert(soma, number)
+					number = number + 1
 				end
 			end
-			if playerlist and #playerlist >= limiteAutoloot then
-				player:sendCancelMessage("Reached the limit <"..#playerlist..">for itens, first remove using !autoloot or !add <monster>, selecting option remove.")
-				return false
+			if soma then
+				if #soma >= limiteAutoloot then
+					player:sendCancelMessage("Reached the limit <"..#soma..">for itens, first remove using !autoloot or !add <monster>, selecting option remove.")
+					return false
 				else
-				player:sendTextMessage(MESSAGE_INFO_DESCR,'Add '.. string.gsub(" "..ItemType(lootBlockList[choiceId].itemId):getName(), "%W%l", string.upper):sub(2, 21) ..' to autoloot list!')
-				player:addAutoLootItem(itemType:getId())
+					player:sendTextMessage(MESSAGE_INFO_DESCR,'Add '.. string.gsub(" "..ItemType(lootBlockList[choiceId].itemId):getName(), "%W%l", string.upper):sub(2, 21) ..' to autoloot list!')
+					player:addAutoLootItem(itemType:getId())
+				end
 			end
 		end
 		call(player, 'add')
@@ -210,8 +216,8 @@ function call(player, param, param2, tobpid)
 				local thing = getContainerItem(getPlayerSlotItem(player, CONST_SLOT_BACKPACK).uid, i)
 				container[i] = getContainerItem(getPlayerSlotItem(player, CONST_SLOT_BACKPACK).uid, i)
 				if isContainer(container[i].uid) then
-					if not table.contains(names, container[i].itemId) then
-						table.insert(names, container[i].itemId)
+					if not table.contains(names, ItemType(container[i].itemid):getName()) then
+						table.insert(names, ItemType(container[i].itemid):getName())
 						window:addChoice(sum, ""..string.gsub(" "..string.lower(ItemType(container[i].itemid):getName()), "%W%l", string.upper):sub(2).."")
 					end
 					sum = sum + 1
@@ -295,9 +301,14 @@ local function scanContainer(cid, position)
 					local destination = Item(slotgg)
 					
 					if destination and destination:getTopParent() == player then
-						itemcorpse:moveTo(destination)
+						local weight = ItemType(itemcorpse):getWeight(itemcorpse.type)
+							if player:getFreeCapacity() >= weight then
+							itemcorpse:moveTo(destination)
+							end
 						else
+						if player:getFreeCapacity() >= weight then
 						containerItem:moveTo(player)
+						end
 					end
 				end
 				
