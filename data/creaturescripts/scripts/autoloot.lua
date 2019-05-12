@@ -33,7 +33,7 @@ function onModalWindow(player, modalWindowId, buttonId, choiceId)
 			player:removeAutoLootItem(itemType:getId())
 			elseif buttonId == 103 then	
 			if player:getAutoLootList() then
-			local playerlist = player:getAutoLootList()
+				local playerlist = player:getAutoLootList()
 			end
 			if player:getAutoLootList() then
 				
@@ -46,7 +46,7 @@ function onModalWindow(player, modalWindowId, buttonId, choiceId)
 				if #soma >= limiteAutoloot then
 					player:sendCancelMessage("Reached the limit <"..#soma..">for itens, first remove using !autoloot or !add <monster>, selecting option remove.")
 					return false
-				else
+					else
 					player:sendTextMessage(MESSAGE_INFO_DESCR,'Add '.. string.gsub(" "..ItemType(lootBlockList[choiceId].itemId):getName(), "%W%l", string.upper):sub(2, 21) ..' to autoloot list!')
 					player:addAutoLootItem(itemType:getId())
 				end
@@ -299,15 +299,15 @@ local function scanContainer(cid, position)
 					end
 					
 					local destination = Item(slotgg)
-					
+					local weight = ItemType(itemcorpse):getWeight(itemcorpse.type)
 					if destination and destination:getTopParent() == player then
-						local weight = ItemType(itemcorpse):getWeight(itemcorpse.type)
-							if player:getFreeCapacity() >= weight then
+						
+						if player:getFreeCapacity() >= weight then
 							itemcorpse:moveTo(destination)
-							end
+						end
 						else
 						if player:getFreeCapacity() >= weight then
-						containerItem:moveTo(player)
+							containerItem:moveTo(player)
 						end
 					end
 				end
@@ -323,5 +323,5 @@ function onKill(player, target)
 	end
 	
     addEvent(scanContainer, 100, player:getId(), target:getPosition()) --(essa linha faz com que o loot seja catado ao matar o monstro, sem abrir o corpo)
-   return true
+	return true
 end
